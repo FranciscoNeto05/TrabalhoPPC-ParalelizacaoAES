@@ -69,7 +69,7 @@ unsigned char multiplicarGalois(unsigned char a, unsigned char b) {
 
 void MisturarColunas(unsigned char estado[4][4]) {
     unsigned char temp[4];
-    #pragma omp parallel for private(temp) // Paraleliza o loop de colunas
+    #pragma omp parallel for private(temp)
     for (int i = 0; i < 4; i++) {
         temp[0] = multiplicarGalois(estado[0][i], 2) ^ multiplicarGalois(estado[1][i], 3) ^ estado[2][i] ^ estado[3][i];
         temp[1] = estado[0][i] ^ multiplicarGalois(estado[1][i], 2) ^ multiplicarGalois(estado[2][i], 3) ^ estado[3][i];
@@ -83,7 +83,7 @@ void MisturarColunas(unsigned char estado[4][4]) {
 }
 
 void AdicionarChaveRodada(unsigned char estado[4][4], unsigned char* chaveRodada) {
-    #pragma omp parallel for collapse(2) // Paraleliza o loop aninhado
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             estado[i][j] ^= chaveRodada[i + 4 * j];

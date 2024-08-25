@@ -3,9 +3,11 @@
 
 #include <cstdio>
 #include <cstring>
+#include <omp.h>
 #include "sbox.hpp"
 
 void SubstituirBytesInverso(unsigned char estado[4][4]) {
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             estado[i][j] = AES_InvSbox[estado[i][j]];
@@ -16,28 +18,39 @@ void SubstituirBytesInverso(unsigned char estado[4][4]) {
 void DeslocarLinhasInverso(unsigned char estado[4][4]) {
     unsigned char temp;
 
-    temp = estado[1][3];
-    estado[1][3] = estado[1][2];
-    estado[1][2] = estado[1][1];
-    estado[1][1] = estado[1][0];
-    estado[1][0] = temp;
-
-    temp = estado[2][0];
-    estado[2][0] = estado[2][2];
-    estado[2][2] = temp;
-    temp = estado[2][1];
-    estado[2][1] = estado[2][3];
-    estado[2][3] = temp;
-
-    temp = estado[3][0];
-    estado[3][0] = estado[3][1];
-    estado[3][1] = estado[3][2];
-    estado[3][2] = estado[3][3];
-    estado[3][3] = temp;
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            temp = estado[1][3];
+            estado[1][3] = estado[1][2];
+            estado[1][2] = estado[1][1];
+            estado[1][1] = estado[1][0];
+            estado[1][0] = temp;
+        }
+        #pragma omp section
+        {
+            temp = estado[2][0];
+            estado[2][0] = estado[2][2];
+            estado[2][2] = temp;
+            temp = estado[2][1];
+            estado[2][1] = estado[2][3];
+            estado[2][3] = temp;
+        }
+        #pragma omp section
+        {
+            temp = estado[3][0];
+            estado[3][0] = estado[3][1];
+            estado[3][1] = estado[3][2];
+            estado[3][2] = estado[3][3];
+            estado[3][3] = temp;
+        }
+    }
 }
 
 void MisturarColunasInverso(unsigned char estado[4][4]) {
     unsigned char temp[4];
+    #pragma omp parallel for private(temp)
     for (int i = 0; i < 4; i++) {
         temp[0] = multiplicarGalois(estado[0][i], 0x0e) ^ multiplicarGalois(estado[1][i], 0x0b) ^ multiplicarGalois(estado[2][i], 0x0d) ^ multiplicarGalois(estado[3][i], 0x09);
         temp[1] = multiplicarGalois(estado[0][i], 0x09) ^ multiplicarGalois(estado[1][i], 0x0e) ^ multiplicarGalois(estado[2][i], 0x0b) ^ multiplicarGalois(estado[3][i], 0x0d);
